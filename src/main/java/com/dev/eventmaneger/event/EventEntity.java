@@ -1,19 +1,60 @@
 package com.dev.eventmaneger.event;
 
+import com.dev.eventmaneger.user.UserEntity;
+import com.dev.eventmaneger.location.LocationEntity;
+import jakarta.persistence.*;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
-
+@Entity
+@NamedEntityGraph(
+        name = "event-with-locations-and-owners",
+        attributeNodes = {
+        @NamedAttributeNode("location"),
+                @NamedAttributeNode("owner")
+}
+)
+@Table(name = "events")
 public class EventEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "name", nullable = false)
     private String name;
+
+    @Column(name = "owner_id", insertable = false, updatable = false) // Эта колонка будет только читаться
     private Long ownerId;
+
+    @ManyToOne
+    @JoinColumn(name = "owner_id", nullable = false) // Связывает ownerId с UserEntity
+    private UserEntity owner;
+
+    @Column(name = "max_places", nullable = false)
     private int maxPlaces;
+
+    @Column(name = "occupied_pl", nullable = false)
     private int occupiedPlaces;
+
+    @Column(name = "date", nullable = false)
     private Date date;
+
+    @Column(name = "cost", nullable = false)
     private BigDecimal cost;
+
+    @Column(name = "duration")
     private int duration;
+
+    @Column(name = "loc_id", insertable = false, updatable = false) // Эта колонка будет только читаться
     private Long locationId;
+
+    @ManyToOne
+    @JoinColumn(name = "loc_id", nullable = false) // Связывает locationId с LocationEntity
+    private LocationEntity location;
+
+
+    @Column(name = "status", nullable = false)
     private Status status;
 
     public EventEntity() {

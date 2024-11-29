@@ -1,9 +1,18 @@
 package com.dev.eventmaneger.user;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "users")
 public class UserEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "login", nullable = false)
     private String login;
+    @Column(name = "age", nullable = false)
     private int age;
+    @Column(name = "role", nullable = false)
     private String role;
 
     public UserEntity() {
