@@ -1,5 +1,8 @@
 package com.dev.eventmaneger.location;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class LocationEntityConverter {
     public LocationEntity toEntity(Location location) {
         return new LocationEntity(

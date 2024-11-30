@@ -17,7 +17,6 @@ public record LocationDto (
         @Min(5)
         @NotNull
         int capacity,
-        @NotBlank
         String description
 ){
 }

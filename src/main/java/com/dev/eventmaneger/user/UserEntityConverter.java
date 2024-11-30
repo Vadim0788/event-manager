@@ -1,12 +1,14 @@
 package com.dev.eventmaneger.user;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class UserEntityConverter {
     public UserEntity toEntity(User user) {
         return new UserEntity(
                 user.id(),
                 user.login(),
-                user.age(),
-                user.role()
+                user.age()
         );
     }
 
@@ -14,8 +16,7 @@ public class UserEntityConverter {
         return new User(
                 userEntity.getId(),
                 userEntity.getLogin(),
-                userEntity.getAge(),
-                userEntity.getRole()
+                userEntity.getAge()
         );
     }
 }

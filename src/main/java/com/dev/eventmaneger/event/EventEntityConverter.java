@@ -1,5 +1,8 @@
 package com.dev.eventmaneger.event;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class EventEntityConverter {
     public EventEntity toEntity(Event event) {
         return new EventEntity(

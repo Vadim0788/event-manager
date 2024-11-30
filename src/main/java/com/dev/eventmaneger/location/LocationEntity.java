@@ -1,7 +1,6 @@
 package com.dev.eventmaneger.location;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
 
 @Entity
 @Table(name = "locations")
@@ -16,7 +15,7 @@ public class LocationEntity {
     private String address;
     @Column(name = "capacity",nullable = false)
     private int capacity;
-    @Column(name = "description",nullable = false)
+    @Column(name = "description")
     private String description;
 
 

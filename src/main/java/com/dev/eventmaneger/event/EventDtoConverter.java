@@ -1,7 +1,8 @@
 package com.dev.eventmaneger.event;
 
+import org.springframework.stereotype.Component;
 
-
+@Component
 public class EventDtoConverter {
     public EventDto toDto(Event event) {
         return new EventDto(

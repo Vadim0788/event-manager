@@ -8,8 +8,6 @@ public record UserDto(
         @NotBlank
         String login,
         @Min(0)
-        int age,
-        @NotBlank
-        String role
+        int age
 ) {
 }

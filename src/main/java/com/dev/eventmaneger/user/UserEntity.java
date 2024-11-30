@@ -12,18 +12,15 @@ public class UserEntity {
     private String login;
     @Column(name = "age", nullable = false)
     private int age;
-    @Column(name = "role", nullable = false)
-    private String role;
 
     public UserEntity() {
     }
 
 
-    public UserEntity(Long id, String login, int age, String role) {
+    public UserEntity(Long id, String login, int age) {
         this.id = id;
         this.login = login;
         this.age = age;
-        this.role = role;
     }
 
     public Long getId() {
@@ -50,11 +47,5 @@ public class UserEntity {
         this.age = age;
     }
 
-    public String getRole() {
-        return role;
-    }
 
-    public void setRole(String role) {
-        this.role = role;
-    }
 }
