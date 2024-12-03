@@ -26,12 +26,13 @@ public class LocationController {
     }
 
     @GetMapping
-    public List<LocationDto> getAllLocations() {
+    public ResponseEntity<List<LocationDto>> getAllLocations() {
         log.info("Get request for get all locations");
-        return locationService.getAllLocations()
+        var locationDtoList =  locationService.getAllLocations()
                 .stream()
                 .map(dtoConverter::toDto)
                 .toList();
+        return ResponseEntity.ok(locationDtoList);
     }
 
     @PostMapping
@@ -59,17 +60,18 @@ public class LocationController {
     }
 
     @GetMapping("/{id}")
-    public LocationDto findById(
+    public ResponseEntity<LocationDto> findById(
             @PathVariable("id") long locationId
     ) {
         log.info("Get request for get location: location = {}", locationId);
         var foundLocation = locationService.findById(locationId);
 
-        return dtoConverter.toDto(foundLocation);
+        var foundLocationDto =  dtoConverter.toDto(foundLocation);
+        return ResponseEntity.ok(foundLocationDto);
     }
 
     @PutMapping("/{id}")
-    public LocationDto updateLocation(
+    public ResponseEntity<LocationDto> updateLocation(
             @PathVariable("id") Long id,
             @RequestBody @Valid LocationDto locationToUpdate
     ) {
@@ -77,7 +79,9 @@ public class LocationController {
         var updatedLocation = locationService.updateLocation(
                 id,
                 dtoConverter.toDomain(locationToUpdate));
-        return dtoConverter.toDto(updatedLocation);
+        var updatedLocationDto =  dtoConverter.toDto(updatedLocation);
+
+        return ResponseEntity.ok(updatedLocationDto);
     }
 
 }
