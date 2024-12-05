@@ -1,6 +1,6 @@
 package com.dev.eventmanager.location;
 
-import com.dev.eventmanager.event.EventRepository;
+
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -13,12 +13,9 @@ public class LocationService {
 
     private final LocationEntityConverter entityConverter;
 
-    private final EventRepository eventRepository;
-
-    public LocationService(LocationRepository locationRepository, LocationEntityConverter locationEntityConverter, EventRepository eventRepository) {
+    public LocationService(LocationRepository locationRepository, LocationEntityConverter locationEntityConverter) {
         this.locationRepository = locationRepository;
         this.entityConverter = locationEntityConverter;
-        this.eventRepository = eventRepository;
 
     }
 
@@ -45,11 +42,6 @@ public class LocationService {
         if (!locationRepository.existsById(locationId)) {
             throw new EntityNotFoundException("Not found location by id=%s"
                     .formatted(locationId));
-        }
-
-        boolean isLinkedToEvents = eventRepository.existsByLocationId(locationId);
-        if (isLinkedToEvents) {
-            throw new IllegalArgumentException("Cannot delete location because it is linked to existing events.");
         }
 
         locationRepository.deleteById(locationId);
