@@ -1,10 +1,10 @@
-package com.dev.eventmaneger.location;
+package com.dev.eventmanager.location;
 
-public record Location (
+public record Location(
         Long id,
         String name,
         String address,
         int capacity,
         String description
-){
+) {
 }

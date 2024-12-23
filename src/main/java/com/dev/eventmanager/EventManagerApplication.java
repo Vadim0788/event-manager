@@ -1,13 +1,13 @@
-package com.dev.eventmaneger;
+package com.dev.eventmanager;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class EventManegerApplication {
+public class EventManagerApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(EventManegerApplication.class, args);
+        SpringApplication.run(EventManagerApplication.class, args);
     }
 
 }

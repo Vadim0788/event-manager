@@ -1,11 +1,21 @@
-package com.dev.eventmaneger.location;
+package com.dev.eventmanager.location;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "locations")
 public class LocationEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "name", nullable = false)
     private String name;
+    @Column(name = "address", nullable = false)
     private String address;
+    @Column(name = "capacity", nullable = false)
     private int capacity;
+    @Column(name = "description")
     private String description;
 
 
@@ -59,4 +69,5 @@ public class LocationEntity {
     public void setName(String name) {
         this.name = name;
     }
+
 }

@@ -1,8 +1,8 @@
-package com.dev.eventmaneger.location;
+package com.dev.eventmanager.location;
 
-import com.dev.eventmaneger.event.Event;
-import com.dev.eventmaneger.event.EventDto;
+import org.springframework.stereotype.Component;
 
+@Component
 public class LocationDtoConverter {
     public LocationDto toDto(Location location) {
         return new LocationDto(
@@ -14,7 +14,7 @@ public class LocationDtoConverter {
         );
     }
 
-    public Location toDomain(LocationDto locationDto){
+    public Location toDomain(LocationDto locationDto) {
         return new Location(
                 locationDto.id(),
                 locationDto.name(),
