@@ -1,5 +1,6 @@
 package com.dev.eventmanager.location;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import static org.springframework.http.ResponseEntity.status;
 
 @RestController
 @RequestMapping("/locations")
+@SecurityRequirement(name = "bearerAuth")
 public class LocationController {
     private static final Logger log = LoggerFactory.getLogger(LocationController.class);
 
