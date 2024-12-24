@@ -1,0 +1,46 @@
+package com.dev.eventmanager.init;
+
+import com.dev.eventmanager.users.*;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+@Component
+public class DefaultUserInitializer {
+
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
+
+    public DefaultUserInitializer(UserService userService, PasswordEncoder passwordEncoder) {
+        this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @EventListener(ContextRefreshedEvent.class)
+    public void initializeDefaultUsers() {
+        // Проверка и добавление администратора
+        if (!userService.existsByLogin("admin")) {
+            UserEntity admin = new UserEntity(// Если используется автоинкремент ID
+                    "admin",
+                    22,
+                    passwordEncoder.encode("admin"),
+                    UserRole.ADMIN.name()
+            );
+            userService.save(admin);
+            System.out.println("Default admin created: login=admin, password=admin");
+        }
+
+        // Проверка и добавление пользователя
+        if (!userService.existsByLogin("user")) {
+            UserEntity user = new UserEntity(
+                    "user",
+                    22,
+                    passwordEncoder.encode("user"),
+                    UserRole.USER.name()
+            );
+            userService.save(user);
+            System.out.println("Default user created: login=user, password=user");
+        }
+    }
+}

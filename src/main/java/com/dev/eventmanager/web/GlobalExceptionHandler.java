@@ -45,6 +45,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ServerErrorDto> handleGenerisException(
             Exception e
     ) {
+        if (e instanceof org.springframework.security.core.AuthenticationException) {
+            throw (org.springframework.security.core.AuthenticationException) e;
+        }
+
         log.error("Server error", e);
         var errorDto = new ServerErrorDto(
                 "Внутренняя ошибка на сервере",
