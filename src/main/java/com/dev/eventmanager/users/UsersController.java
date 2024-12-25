@@ -1,7 +1,6 @@
 package com.dev.eventmanager.users;
 
 import com.dev.eventmanager.security.jwt.AuthenticationService;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
-@SecurityRequirement(name = "bearerAuth")
+
 public class UsersController {
 
     private final UserService userService;

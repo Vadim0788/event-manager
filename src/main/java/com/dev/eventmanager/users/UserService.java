@@ -1,7 +1,7 @@
 package com.dev.eventmanager.users;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.Valid;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -10,13 +10,15 @@ public class UserService {
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
+    private final UserEntityMapper userEntityMapper;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, UserEntityMapper userEntityMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userEntityMapper = userEntityMapper;
     }
 
-    public User registerUser(@Valid SignUppRequest singUppRequest) {
+    public User registerUser(SignUppRequest singUppRequest) {
 
         if (userRepository.existsByLogin(singUppRequest.login())) {
             throw new IllegalArgumentException("Username already taken");
@@ -32,12 +34,8 @@ public class UserService {
 
         var savedUserEntity = userRepository.save(userToSave);
 
-        return new User(
-                savedUserEntity.getId(),
-                savedUserEntity.getLogin(),
-                savedUserEntity.getAge(),
-                UserRole.valueOf(savedUserEntity.getRole())
-        );
+        return userEntityMapper.toDomain(userToSave);
+
     }
 
     public UserDto findById(Long id) {
@@ -56,17 +54,9 @@ public class UserService {
         var user = userRepository.findByLogin(login)
                 .orElseThrow(() -> new EntityNotFoundException("User not find"));
 
-        return mapToDomain(user);
+        return userEntityMapper.toDomain(user);
     }
 
-    private static User mapToDomain(UserEntity entity) {
-        return new User(
-                entity.getId(),
-                entity.getLogin(),
-                entity.getAge(),
-                UserRole.valueOf(entity.getRole())
-        );
-    }
 
     public void save(UserEntity user) {
         userRepository.save(user);
