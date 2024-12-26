@@ -9,15 +9,16 @@ public class UserEntityMapper {
                 userEntity.getId(),
                 userEntity.getLogin(),
                 userEntity.getAge(),
-                UserRole.valueOf(userEntity.getRole())
+                UserRole.valueOf(userEntity.getRole()),
+                userEntity.getPassword()
         );
     }
 
-    public UserEntity toEntity(User user, String passwordHash){
+    public UserEntity toEntity(User user){
         return new UserEntity(
                 user.login(),
                 user.age(),
-                passwordHash,
+                user.passwordHash(),
                 user.role().name()
         );
     }

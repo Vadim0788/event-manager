@@ -19,8 +19,7 @@ public class DefaultUserInitializer {
 
     @EventListener(ApplicationReadyEvent.class)
     public void initializeDefaultUsers() {
-        // Проверка и добавление администратора
-        if (!userService.existsByLogin("admin")) {
+        if (userService.doesNotExistByLogin("admin")) {
             UserEntity admin = new UserEntity(
                     "admin",
                     22,
@@ -31,8 +30,7 @@ public class DefaultUserInitializer {
             System.out.println("Default admin created: login=admin, password=admin");
         }
 
-        // Проверка и добавление пользователя
-        if (!userService.existsByLogin("user")) {
+        if (userService.doesNotExistByLogin("user")) {
             UserEntity user = new UserEntity(
                     "user",
                     22,

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,14 +15,17 @@ import org.springframework.web.bind.annotation.*;
 public class UsersController {
 
     private final UserService userService;
-
+    private final PasswordEncoder passwordEncoder;
     private static final Logger log = LoggerFactory.getLogger(UsersController.class);
     private final AuthenticationService authenticationService;
+    private final UserDtoMapper userDtoMapper;
 
 
-    public UsersController(UserService userService, AuthenticationService authenticationService) {
+    public UsersController(UserService userService, PasswordEncoder passwordEncoder, AuthenticationService authenticationService, UserDtoMapper userDtoMapper) {
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
         this.authenticationService = authenticationService;
+        this.userDtoMapper = userDtoMapper;
     }
 
     @PostMapping
@@ -31,9 +35,20 @@ public class UsersController {
             SignUppRequest singUppRequest
     ) {
         log.info("Get request for sing-up: login={}", singUppRequest.login());
-        var user = userService.registerUser(singUppRequest);
+
+        var hashedPass = passwordEncoder.encode(singUppRequest.password());
+        User requestedUser = new User(
+                null,
+                singUppRequest.login(),
+                singUppRequest.age(),
+                null,
+                hashedPass
+        );
+
+        var user = userService.registerUser(requestedUser);
+        var userDto = userDtoMapper.toDto(user);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new UserDto(user.id(), user.age(), user.login()));
+                .body(userDto);
     }
 
     @GetMapping
@@ -43,7 +58,8 @@ public class UsersController {
             @PathVariable("id") Long id
     ) {
         log.info("Get request for find user by id: id={}", id);
-        var userDto = userService.findById(id);
+        var user = userService.findById(id);
+        var userDto = userDtoMapper.toDto(user);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(userDto);
     }

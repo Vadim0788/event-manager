@@ -2,52 +2,46 @@ package com.dev.eventmanager.users;
 
 import jakarta.persistence.EntityNotFoundException;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
 
-    private final PasswordEncoder passwordEncoder;
     private final UserEntityMapper userEntityMapper;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, UserEntityMapper userEntityMapper) {
+    public UserService(UserRepository userRepository, UserEntityMapper userEntityMapper) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
         this.userEntityMapper = userEntityMapper;
     }
 
-    public User registerUser(SignUppRequest singUppRequest) {
+    public User registerUser(User user) {
 
-        if (userRepository.existsByLogin(singUppRequest.login())) {
+        if (userRepository.existsByLogin(user.login())) {
             throw new IllegalArgumentException("Username already taken");
         }
-        var hashedPass = passwordEncoder.encode(singUppRequest.password());
 
         var userToSave = new UserEntity(
-                singUppRequest.login(),
-                singUppRequest.age(),
-                hashedPass,
+                user.login(),
+                user.age(),
+                user.passwordHash(),
                 UserRole.USER.name()
         );
 
         var savedUserEntity = userRepository.save(userToSave);
 
-        return userEntityMapper.toDomain(userToSave);
+        return userEntityMapper.toDomain(savedUserEntity);
 
     }
 
-    public UserDto findById(Long id) {
+    public User findById(Long id) {
         var foundUserEntity = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "No found user by id=%s"
                                 .formatted(id)
                 ));
 
-        return new UserDto(foundUserEntity.getId(), foundUserEntity.getAge(), foundUserEntity.getLogin());
-
-
+        return  userEntityMapper.toDomain(foundUserEntity);
     }
 
     public User findByLogin(String login) {
@@ -62,7 +56,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public boolean existsByLogin(String login) {
-        return userRepository.existsByLogin(login);
+    public boolean doesNotExistByLogin(String login) {
+        return ! userRepository.existsByLogin(login);
     }
 }
