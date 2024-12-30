@@ -3,7 +3,7 @@ package com.dev.eventmanager.location;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LocationEntityConverter {
+public class LocationEntityMapper {
     public LocationEntity toEntity(Location location) {
         return new LocationEntity(
                 location.id(),

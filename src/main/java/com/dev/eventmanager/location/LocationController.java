@@ -1,6 +1,5 @@
 package com.dev.eventmanager.location;
 
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,15 +13,14 @@ import static org.springframework.http.ResponseEntity.status;
 
 @RestController
 @RequestMapping("/locations")
-@SecurityRequirement(name = "bearerAuth")
 public class LocationController {
     private static final Logger log = LoggerFactory.getLogger(LocationController.class);
 
     private final LocationService locationService;
 
-    private final LocationDtoConverter dtoConverter;
+    private final LocationDtoMapper dtoConverter;
 
-    public LocationController(LocationService locationService, LocationDtoConverter dtoConverter) {
+    public LocationController(LocationService locationService, LocationDtoMapper dtoConverter) {
         this.locationService = locationService;
         this.dtoConverter = dtoConverter;
     }
@@ -30,7 +28,7 @@ public class LocationController {
     @GetMapping
     public ResponseEntity<List<LocationDto>> getAllLocations() {
         log.info("Get request for get all locations");
-        var locationDtoList =  locationService.getAllLocations()
+        var locationDtoList = locationService.getAllLocations()
                 .stream()
                 .map(dtoConverter::toDto)
                 .toList();
@@ -68,7 +66,7 @@ public class LocationController {
         log.info("Get request for get location: location = {}", locationId);
         var foundLocation = locationService.findById(locationId);
 
-        var foundLocationDto =  dtoConverter.toDto(foundLocation);
+        var foundLocationDto = dtoConverter.toDto(foundLocation);
         return ResponseEntity.ok(foundLocationDto);
     }
 
@@ -81,7 +79,7 @@ public class LocationController {
         var updatedLocation = locationService.updateLocation(
                 id,
                 dtoConverter.toDomain(locationToUpdate));
-        var updatedLocationDto =  dtoConverter.toDto(updatedLocation);
+        var updatedLocationDto = dtoConverter.toDto(updatedLocation);
 
         return ResponseEntity.ok(updatedLocationDto);
     }

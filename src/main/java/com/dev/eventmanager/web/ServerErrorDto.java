@@ -1,10 +1,10 @@
 package com.dev.eventmanager.web;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record ServerErrorDto(
         String message,
         String detailedMessage,
-        LocalDateTime dateTime
+        OffsetDateTime dateTime
 ) {
 }

@@ -1,6 +1,10 @@
 package com.dev.eventmanager.location;
 
+import com.dev.eventmanager.event.EventEntity;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "locations")
@@ -9,7 +13,7 @@ public class LocationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
     @Column(name = "address", nullable = false)
     private String address;
@@ -17,7 +21,8 @@ public class LocationEntity {
     private int capacity;
     @Column(name = "description")
     private String description;
-
+    @OneToMany(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventEntity> events = new ArrayList<>();
 
     public LocationEntity() {
     }

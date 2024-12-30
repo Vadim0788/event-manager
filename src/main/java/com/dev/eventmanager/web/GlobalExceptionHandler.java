@@ -9,7 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
         var errorDto = new ServerErrorDto(
                 "Некорректный запрос",
                 detailedMessage,
-                LocalDateTime.now());
+                OffsetDateTime.now());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(errorDto);
@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
         var errorDto = new ServerErrorDto(
                 "Внутренняя ошибка на сервере",
                 e.getMessage(),
-                LocalDateTime.now());
+                OffsetDateTime.now());
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(errorDto);
@@ -68,7 +68,7 @@ public class GlobalExceptionHandler {
         var errorDto = new ServerErrorDto(
                 "Сущность не найдена",
                 e.getMessage(),
-                LocalDateTime.now());
+                OffsetDateTime.now());
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(errorDto);
