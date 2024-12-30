@@ -74,7 +74,6 @@ public interface EventRepository extends JpaRepository<EventEntity, Long> {
 
     List<EventEntity> getEventEntitiesByOwner(UserEntity userEntity);
 
-    List<EventEntity> findAllByDateBeforeAndStatusNot(OffsetDateTime now, String ended);
 
     @Transactional
     @Modifying

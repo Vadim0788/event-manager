@@ -40,8 +40,6 @@ public class EventEntity {
     private Integer occupiedPlaces;
     @Column(name = "status", nullable = false)
     private String status;
-    @Column(name = "timezone_offset", nullable = false)
-    private String timezoneOffset;
 
     public EventEntity() {
     }
@@ -56,8 +54,7 @@ public class EventEntity {
             LocationEntity location,
             UserEntity owner,
             Integer occupiedPlaces,
-            String status,
-            String timezoneOffset
+            String status
     ) {
         this.id = id;
         this.name = name;
@@ -69,7 +66,7 @@ public class EventEntity {
         this.owner = owner;
         this.occupiedPlaces = occupiedPlaces;
         this.status = status;
-        this.timezoneOffset = timezoneOffset;
+
     }
 
     public void setId(Long id) {
@@ -113,13 +110,12 @@ public class EventEntity {
     }
 
     public OffsetDateTime getDate() {
-        return date.withOffsetSameInstant(ZoneOffset.of(getTimezoneOffset()));
+        return date;
     }
 
     public void setDate(OffsetDateTime date) {
 
-        this.date = date.withOffsetSameInstant(ZoneOffset.UTC);
-        this.timezoneOffset = date.getOffset().toString();
+        this.date = date;
     }
 
     public BigDecimal getCost() {
@@ -159,11 +155,4 @@ public class EventEntity {
         return date.plus(duration, ChronoUnit.MINUTES);
     }
 
-    public String getTimezoneOffset() {
-        return timezoneOffset;
-    }
-
-    public void setTimezoneOffset(String timezoneOffset) {
-        this.timezoneOffset = timezoneOffset;
-    }
 }

@@ -20,11 +20,8 @@ public class EventStatusUpdaterService {
     public void updateEventStatuses() {
         OffsetDateTime now  = OffsetDateTime.now();
         OffsetDateTime utcNow = now.withOffsetSameInstant(ZoneOffset.UTC);
-
         searchAndLaunchAnEvent(utcNow);
-
         searchingAndFinishingEvents(utcNow);
-
     }
 
     private void searchAndLaunchAnEvent(OffsetDateTime now) {

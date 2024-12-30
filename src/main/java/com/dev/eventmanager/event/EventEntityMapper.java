@@ -11,8 +11,7 @@ public class EventEntityMapper {
 
 
     public EventEntity toEntity(Event event, LocationEntity location, UserEntity owner) {
-        OffsetDateTime date = event.date(); // Сохраняем в UTC
-        String timezoneOffset = date.getOffset().toString();
+
         return new EventEntity(
                 null,
                 event.name(),
@@ -23,8 +22,7 @@ public class EventEntityMapper {
                 location,
                 owner,
                 0,
-                EventStatus.WAIT_START.name(),
-                timezoneOffset
+                EventStatus.WAIT_START.name()
         );
     }
 
