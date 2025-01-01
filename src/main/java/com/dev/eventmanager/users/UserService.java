@@ -1,5 +1,6 @@
 package com.dev.eventmanager.users;
 
+import com.dev.eventmanager.security.jwt.AuthenticationService;
 import jakarta.persistence.EntityNotFoundException;
 
 import org.springframework.stereotype.Service;
@@ -7,11 +8,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
     private final UserRepository userRepository;
-
+    private final AuthenticationService authenticationService;
     private final UserEntityMapper userEntityMapper;
 
-    public UserService(UserRepository userRepository, UserEntityMapper userEntityMapper) {
+    public UserService(UserRepository userRepository, AuthenticationService authenticationService, UserEntityMapper userEntityMapper) {
         this.userRepository = userRepository;
+        this.authenticationService = authenticationService;
         this.userEntityMapper = userEntityMapper;
     }
 
@@ -21,12 +23,7 @@ public class UserService {
             throw new IllegalArgumentException("Username already taken");
         }
 
-        var userToSave = new UserEntity(
-                user.login(),
-                user.age(),
-                user.passwordHash(),
-                UserRole.USER.name()
-        );
+        var userToSave = userEntityMapper.toEntity(user);
 
         var savedUserEntity = userRepository.save(userToSave);
 
@@ -58,5 +55,12 @@ public class UserService {
 
     public boolean doesNotExistByLogin(String login) {
         return ! userRepository.existsByLogin(login);
+    }
+
+    public UserEntity getAuthenticatedUserEntity() {
+        String login = authenticationService.getCurrentUserLogin();
+        return userRepository.findByLogin(login).orElseThrow(() ->
+                new EntityNotFoundException(String.format("User with login (%s) not found", login))
+        );
     }
 }

@@ -13,7 +13,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Component
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -37,7 +37,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         var messageResponse = new ServerErrorDto(
                 "Failed to authenticate",
                 authException.getMessage(),
-                LocalDateTime.now()
+                OffsetDateTime.now()
         );
 
         var stringResponse = objectMapper.writeValueAsString(messageResponse);

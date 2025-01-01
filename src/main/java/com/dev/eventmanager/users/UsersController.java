@@ -15,17 +15,17 @@ import org.springframework.web.bind.annotation.*;
 public class UsersController {
 
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
     private static final Logger log = LoggerFactory.getLogger(UsersController.class);
     private final AuthenticationService authenticationService;
     private final UserDtoMapper userDtoMapper;
+    private final UserRequestMapper userRequestMapper;
 
-
-    public UsersController(UserService userService, PasswordEncoder passwordEncoder, AuthenticationService authenticationService, UserDtoMapper userDtoMapper) {
+    public UsersController(UserService userService, AuthenticationService authenticationService, UserDtoMapper userDtoMapper, UserRequestMapper userRequestMapper) {
         this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
+
         this.authenticationService = authenticationService;
         this.userDtoMapper = userDtoMapper;
+        this.userRequestMapper = userRequestMapper;
     }
 
     @PostMapping
@@ -36,14 +36,8 @@ public class UsersController {
     ) {
         log.info("Get request for sing-up: login={}", singUppRequest.login());
 
-        var hashedPass = passwordEncoder.encode(singUppRequest.password());
-        User requestedUser = new User(
-                null,
-                singUppRequest.login(),
-                singUppRequest.age(),
-                null,
-                hashedPass
-        );
+        User requestedUser =  userRequestMapper.toDomain(singUppRequest);
+
 
         var user = userService.registerUser(requestedUser);
         var userDto = userDtoMapper.toDto(user);

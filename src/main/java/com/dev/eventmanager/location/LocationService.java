@@ -11,11 +11,11 @@ public class LocationService {
 
     private final LocationRepository locationRepository;
 
-    private final LocationEntityConverter entityConverter;
+    private final LocationEntityMapper entityConverter;
 
-    public LocationService(LocationRepository locationRepository, LocationEntityConverter locationEntityConverter) {
+    public LocationService(LocationRepository locationRepository, LocationEntityMapper locationEntityMapper) {
         this.locationRepository = locationRepository;
-        this.entityConverter = locationEntityConverter;
+        this.entityConverter = locationEntityMapper;
 
     }
 
