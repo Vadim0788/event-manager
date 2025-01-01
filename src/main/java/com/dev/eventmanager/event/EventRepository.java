@@ -2,7 +2,6 @@ package com.dev.eventmanager.event;
 
 import com.dev.eventmanager.location.LocationEntity;
 import com.dev.eventmanager.users.UserEntity;
-import jakarta.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -17,7 +16,13 @@ import java.util.List;
 public interface EventRepository extends JpaRepository<EventEntity, Long> {
     boolean existsByName(String name);
 
-    @Transactional
+    @Query("""
+    SELECT e
+    FROM EventEntity e
+    WHERE e.id = :id
+""")
+    EventEntity findEventById(@Param("id") Long id);
+
     @Modifying
     @Query("""            
             UPDATE  EventEntity e
@@ -40,8 +45,7 @@ public interface EventRepository extends JpaRepository<EventEntity, Long> {
     );
 
 
-    @Transactional
-    @Modifying
+
     @Query("""            
             SELECT e
             FROM EventEntity e
@@ -75,8 +79,7 @@ public interface EventRepository extends JpaRepository<EventEntity, Long> {
     List<EventEntity> getEventEntitiesByOwner(UserEntity userEntity);
 
 
-    @Transactional
-    @Modifying
+
     @Query("""
     SELECT e
     FROM EventEntity e
@@ -85,6 +88,7 @@ public interface EventRepository extends JpaRepository<EventEntity, Long> {
     """)
     List<EventEntity> findAllRelevantEvents(@Param("now") OffsetDateTime now,
                                             @Param("eventStatus") String eventStatus);
+
 
 
 }

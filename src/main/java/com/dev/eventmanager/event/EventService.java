@@ -7,6 +7,7 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import com.dev.eventmanager.location.LocationEntity;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 
@@ -19,19 +20,19 @@ public class EventService {
     private final EventEntityMapper eventEntityMapper;
     private final UserService userService;
     private final EventDtoMapper eventDtoMapper;
+    private final EventEntityEventResponseMapper eventEntityEventResponseMapper;
 
-
-    public EventService(EventRepository eventRepository, LocationRepository locationRepository, EventEntityMapper eventEntityMapper, UserService userService, EventDtoMapper eventDtoMapper) {
+    public EventService(EventRepository eventRepository, LocationRepository locationRepository, EventEntityMapper eventEntityMapper, UserService userService, EventDtoMapper eventDtoMapper, EventEntityEventResponseMapper eventEntityEventResponseMapper) {
 
         this.eventRepository = eventRepository;
         this.locationRepository = locationRepository;
         this.eventEntityMapper = eventEntityMapper;
         this.userService = userService;
         this.eventDtoMapper = eventDtoMapper;
+        this.eventEntityEventResponseMapper = eventEntityEventResponseMapper;
     }
 
-    @Transactional
-    public EventDto createEvent(Event event) {
+    public EventResponceDto createEvent(Event event) {
 
         LocationEntity location = locationRepository.findById(event.locationId())
                 .orElseThrow(() -> new EntityNotFoundException("Location not found"));
@@ -49,14 +50,13 @@ public class EventService {
         var entityToSave = eventEntityMapper.toEntity(event, location, userEntity);
 
 
-        event = eventEntityMapper.toDomain(
-                eventRepository.save(entityToSave)
-        );
-        return eventDtoMapper.toDto(event);
+        var eventEntity = eventRepository.save(entityToSave);
+
+        return eventEntityEventResponseMapper.toResponce(eventEntity);
 
     }
 
-    @Transactional
+
     public void deleteEvent(long eventId) {
         if (!eventRepository.existsById(eventId)) {
             throw new EntityNotFoundException("Not found event by id=%s"
@@ -79,6 +79,7 @@ public class EventService {
 
     @Transactional
     public EventDto updateEvent(Long id, Event eventToUpdate) {
+
         if (!eventRepository.existsById(id))
             throw new EntityNotFoundException(
                     "No found event by id=%s"
@@ -87,6 +88,17 @@ public class EventService {
             throw new IllegalArgumentException("Event name already taken");
         }
 
+        UserEntity userEntity = userService.getAuthenticatedUserEntity();
+        EventEntity eventEntity = eventRepository.findEventById(id);
+        if (userEntity.getRole().equals(UserRole.USER.name())
+                && eventEntity.getOwner() != userEntity) {
+            throw new AccessDeniedException("You are not allowed to update this event");
+        }
+
+        if (eventToUpdate.maxPlaces() < eventEntity.getOccupiedPlaces()) {
+            throw new IllegalArgumentException("Invalid event data: maxPlaces(%s) must be greater than the number of registered users (%s). "
+                    .formatted(eventToUpdate.maxPlaces(), eventEntity.getOccupiedPlaces()));
+        }
         LocationEntity location = locationRepository.findById(eventToUpdate.locationId())
                 .orElseThrow(() -> new EntityNotFoundException("Location not found"));
 

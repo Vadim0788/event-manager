@@ -13,10 +13,7 @@ public class EventDtoMapper {
                 event.date(),
                 event.cost(),
                 event.duration(),
-                event.locationId(),
-                null,
-                0,
-                null
+                event.locationId()
         );
     }
 

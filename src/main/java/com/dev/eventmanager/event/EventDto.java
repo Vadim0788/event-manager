@@ -25,9 +25,6 @@ public record EventDto(
         @NotNull
         Integer duration,
         @NotNull
-        Long locationId,
-        Long ownerId,
-        Integer occupiedPlaces,
-        String status
+        Long locationId
 ) {
 }

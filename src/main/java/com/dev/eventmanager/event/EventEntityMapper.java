@@ -4,8 +4,6 @@ import com.dev.eventmanager.location.LocationEntity;
 import com.dev.eventmanager.users.UserEntity;
 import org.springframework.stereotype.Component;
 
-import java.time.OffsetDateTime;
-
 @Component
 public class EventEntityMapper {
 

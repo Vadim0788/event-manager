@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 import static org.springframework.http.ResponseEntity.status;
@@ -25,16 +26,16 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<EventDto> createEvent(
+    public ResponseEntity<EventResponceDto> createEvent(
             @RequestBody @Valid EventDto eventToCreate
     ) {
         log.info("Get request for create event: event = {}", eventToCreate);
 
-        EventDto createdEvent = eventService.createEvent(
+        EventResponceDto eventResponceDto = eventService.createEvent(
                 eventDtoMapper.toDomain(eventToCreate)
         );
         return status(HttpStatus.CREATED)
-                .body(createdEvent);
+                .body(eventResponceDto);
     }
 
     @DeleteMapping("/{id}")
@@ -64,7 +65,7 @@ public class EventController {
     public ResponseEntity<EventDto> updateEvent(
             @PathVariable("id") Long id,
             @RequestBody @Valid EventDto eventToUpdate
-    ) {
+    ) throws AccessDeniedException {
         log.info("Get request for put event by id: id={}, eventToUpdate={}", id, eventToUpdate);
         var updatedEventDto = eventService.updateEvent(
                 id,
