@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 import static org.springframework.http.ResponseEntity.status;
@@ -26,12 +25,12 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<EventResponceDto> createEvent(
+    public ResponseEntity<EventResponseDto> createEvent(
             @RequestBody @Valid EventDto eventToCreate
     ) {
         log.info("Get request for create event: event = {}", eventToCreate);
 
-        EventResponceDto eventResponceDto = eventService.createEvent(
+        EventResponseDto eventResponceDto = eventService.createEvent(
                 eventDtoMapper.toDomain(eventToCreate)
         );
         return status(HttpStatus.CREATED)
@@ -62,14 +61,12 @@ public class EventController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EventDto> updateEvent(
+    public ResponseEntity<EventResponseDto> updateEvent(
             @PathVariable("id") Long id,
-            @RequestBody @Valid EventDto eventToUpdate
-    ) throws AccessDeniedException {
-        log.info("Get request for put event by id: id={}, eventToUpdate={}", id, eventToUpdate);
-        var updatedEventDto = eventService.updateEvent(
-                id,
-                eventDtoMapper.toDomain(eventToUpdate));
+            @RequestBody @Valid EventUpdateRequestDto updateRequestDto
+    ) {
+        log.info("Get request for put event by id: id={}, eventToUpdate={}", id, updateRequestDto);
+        var updatedEventDto = eventService.updateEvent(id,updateRequestDto);
 
         return ResponseEntity.ok(updatedEventDto);
     }

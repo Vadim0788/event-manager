@@ -6,7 +6,7 @@ import com.dev.eventmanager.users.UserEntity;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
-public record EventResponceDto (
+public record EventResponseDto (
         Long id,
         String name,
         Long maxPlaces,

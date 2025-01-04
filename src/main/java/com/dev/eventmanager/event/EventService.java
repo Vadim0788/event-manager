@@ -10,6 +10,7 @@ import com.dev.eventmanager.location.LocationEntity;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -32,7 +33,7 @@ public class EventService {
         this.eventEntityEventResponseMapper = eventEntityEventResponseMapper;
     }
 
-    public EventResponceDto createEvent(Event event) {
+    public EventResponseDto createEvent(Event event) {
 
         LocationEntity location = locationRepository.findById(event.locationId())
                 .orElseThrow(() -> new EntityNotFoundException("Location not found"));
@@ -52,7 +53,7 @@ public class EventService {
 
         var eventEntity = eventRepository.save(entityToSave);
 
-        return eventEntityEventResponseMapper.toResponce(eventEntity);
+        return eventEntityEventResponseMapper.toResponse(eventEntity);
 
     }
 
@@ -78,44 +79,55 @@ public class EventService {
     }
 
     @Transactional
-    public EventDto updateEvent(Long id, Event eventToUpdate) {
+    public EventResponseDto updateEvent(Long id, EventUpdateRequestDto updateRequest) {
 
         if (!eventRepository.existsById(id))
             throw new EntityNotFoundException(
                     "No found event by id=%s"
                             .formatted(id));
-        if (eventRepository.existsByName(eventToUpdate.name())) {
+
+        if (eventRepository.existsByName(updateRequest.name())) {
             throw new IllegalArgumentException("Event name already taken");
         }
 
         UserEntity userEntity = userService.getAuthenticatedUserEntity();
-        EventEntity eventEntity = eventRepository.findEventById(id);
+        EventEntity eventEntity = eventRepository.findById(id).orElseThrow();
+        LocationEntity locationEntity =  locationRepository.findById(eventEntity.getLocation().getId()).orElseThrow();
+
+        if (!eventEntity.getStatus().equals(EventStatus.WAIT_START.name())) {
+            throw new IllegalArgumentException("Cannot modify event in status: %s"
+                    .formatted(eventEntity.getStatus()));
+        }
+
         if (userEntity.getRole().equals(UserRole.USER.name())
                 && eventEntity.getOwner() != userEntity) {
             throw new AccessDeniedException("You are not allowed to update this event");
         }
 
-        if (eventToUpdate.maxPlaces() < eventEntity.getOccupiedPlaces()) {
+        if (updateRequest.maxPlaces() < eventEntity.getOccupiedPlaces()) {
             throw new IllegalArgumentException("Invalid event data: maxPlaces(%s) must be greater than the number of registered users (%s). "
-                    .formatted(eventToUpdate.maxPlaces(), eventEntity.getOccupiedPlaces()));
+                    .formatted(updateRequest.maxPlaces(), eventEntity.getOccupiedPlaces()));
         }
-        LocationEntity location = locationRepository.findById(eventToUpdate.locationId())
+        LocationEntity location = locationRepository.findById(updateRequest.locationId())
                 .orElseThrow(() -> new EntityNotFoundException("Location not found"));
 
-        eventRepository.updateEvent(
-                id,
-                eventToUpdate.name(),
-                eventToUpdate.maxPlaces(),
-                eventToUpdate.date(),
-                eventToUpdate.cost(),
-                eventToUpdate.duration(),
-                location
-        );
+        Optional.ofNullable(updateRequest.name())
+                .ifPresent(eventEntity::setName);
+        Optional.of(updateRequest.maxPlaces())
+                .ifPresent(eventEntity::setMaxPlaces);
+        Optional.ofNullable(updateRequest.date())
+                .ifPresent(eventEntity::setDate);
+        Optional.ofNullable(updateRequest.cost())
+                .ifPresent(eventEntity::setCost);
+        Optional.ofNullable(updateRequest.duration())
+                .ifPresent(eventEntity::setDuration);
+        Optional.of(locationEntity)
+                .ifPresent(eventEntity::setLocation);
 
-        Event event = eventEntityMapper.toDomain(
-                eventRepository.findById(id).orElseThrow()
-        );
-        return eventDtoMapper.toDto(event);
+        eventRepository.save(eventEntity);
+        EventEntity event =  getEventById(eventEntity.getId());
+
+        return eventEntityEventResponseMapper.toResponse(event);
     }
 
     public List<EventDto> search(@Valid EventFilterRequest eventFilterRequest) {
@@ -144,6 +156,13 @@ public class EventService {
         List<EventEntity> listEventEntities = eventRepository.getEventEntitiesByOwner(userEntity);
         return listEventEntities.stream().map(eventEntityMapper::toDomain).toList();
 
+    }
+
+    public EventEntity getEventById(Long eventId) {
+        var event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException("Event entity wasn't found id=%s"
+                        .formatted(eventId)));
+        return event;
     }
 
 }

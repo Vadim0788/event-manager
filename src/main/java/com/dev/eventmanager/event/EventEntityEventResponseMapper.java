@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventEntityEventResponseMapper {
 
-    EventResponceDto toResponce (EventEntity eventEntity){
-        return new EventResponceDto(
+    EventResponseDto toResponse (EventEntity eventEntity){
+        return new EventResponseDto(
                 eventEntity.getId(),
                 eventEntity.getName(),
                 eventEntity.getMaxPlaces(),

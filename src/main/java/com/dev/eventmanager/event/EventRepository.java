@@ -16,12 +16,6 @@ import java.util.List;
 public interface EventRepository extends JpaRepository<EventEntity, Long> {
     boolean existsByName(String name);
 
-    @Query("""
-    SELECT e
-    FROM EventEntity e
-    WHERE e.id = :id
-""")
-    EventEntity findEventById(@Param("id") Long id);
 
     @Modifying
     @Query("""            
