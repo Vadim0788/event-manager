@@ -1,6 +1,9 @@
 package com.dev.eventmanager.event;
 
+import com.dev.eventmanager.kafkaEvent.EventKafkaMessage;
+import com.dev.eventmanager.kafkaEvent.EventMessageSender;
 import com.dev.eventmanager.location.LocationRepository;
+import com.dev.eventmanager.registration.RegistrationRepository;
 import com.dev.eventmanager.users.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -22,8 +25,10 @@ public class EventService {
     private final UserService userService;
     private final EventDtoMapper eventDtoMapper;
     private final EventEntityEventResponseMapper eventEntityEventResponseMapper;
+    private final RegistrationRepository registrationRepository;
+    private final EventMessageSender eventMessageSender;
 
-    public EventService(EventRepository eventRepository, LocationRepository locationRepository, EventEntityMapper eventEntityMapper, UserService userService, EventDtoMapper eventDtoMapper, EventEntityEventResponseMapper eventEntityEventResponseMapper) {
+    public EventService(EventRepository eventRepository, LocationRepository locationRepository, EventEntityMapper eventEntityMapper, UserService userService, EventDtoMapper eventDtoMapper, EventEntityEventResponseMapper eventEntityEventResponseMapper, RegistrationRepository registrationRepository, EventMessageSender eventMessageSender) {
 
         this.eventRepository = eventRepository;
         this.locationRepository = locationRepository;
@@ -31,6 +36,8 @@ public class EventService {
         this.userService = userService;
         this.eventDtoMapper = eventDtoMapper;
         this.eventEntityEventResponseMapper = eventEntityEventResponseMapper;
+        this.registrationRepository = registrationRepository;
+        this.eventMessageSender = eventMessageSender;
     }
 
     public EventResponseDto createEvent(Event event) {
@@ -92,7 +99,7 @@ public class EventService {
 
         UserEntity userEntity = userService.getAuthenticatedUserEntity();
         EventEntity eventEntity = eventRepository.findById(id).orElseThrow();
-        LocationEntity locationEntity =  locationRepository.findById(eventEntity.getLocation().getId()).orElseThrow();
+        LocationEntity locationEntity = locationRepository.findById(eventEntity.getLocation().getId()).orElseThrow();
 
         if (!eventEntity.getStatus().equals(EventStatus.WAIT_START.name())) {
             throw new IllegalArgumentException("Cannot modify event in status: %s"
@@ -111,6 +118,8 @@ public class EventService {
         LocationEntity location = locationRepository.findById(updateRequest.locationId())
                 .orElseThrow(() -> new EntityNotFoundException("Location not found"));
 
+        List<Long> subscribersList = registrationRepository.getAllByEvent(eventEntity);
+
         Optional.ofNullable(updateRequest.name())
                 .ifPresent(eventEntity::setName);
         Optional.of(updateRequest.maxPlaces())
@@ -125,7 +134,19 @@ public class EventService {
                 .ifPresent(eventEntity::setLocation);
 
         eventRepository.save(eventEntity);
-        EventEntity event =  getEventById(eventEntity.getId());
+        EventEntity event = getEventById(eventEntity.getId());
+
+        Event oldEvent = eventEntityMapper.toDomain(eventEntity);
+        Event newEvent = eventEntityMapper.toDomain(event);
+        eventMessageSender.sendEvent(new EventKafkaMessage(
+                eventEntity.getId(),
+                userEntity.getId(),
+                oldEvent,
+                newEvent,
+                eventEntity.getOwner().getId(),
+                subscribersList
+                )
+        );
 
         return eventEntityEventResponseMapper.toResponse(event);
     }
