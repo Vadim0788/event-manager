@@ -20,7 +20,7 @@ public class EventMessageSender {
         log.info("Sending message about event: message = {}", eventKafkaMessage);
         var result = kafkaTemplate.send(
                 "event-topic",
-                eventKafkaMessage.id(),
+                eventKafkaMessage.eventId(),
                 eventKafkaMessage
         );
         result.thenAccept(sendResult -> {

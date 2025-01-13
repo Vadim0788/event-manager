@@ -89,7 +89,6 @@ public class SecurityConfiguration {
                                 .permitAll()
                                 .anyRequest().authenticated()
                 )
-
                 .addFilterBefore(jwtTokenFilter, AnonymousAuthenticationFilter.class)
                 .build();
     }

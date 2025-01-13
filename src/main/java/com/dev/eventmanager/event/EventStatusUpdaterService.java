@@ -1,5 +1,9 @@
 package com.dev.eventmanager.event;
 
+import com.dev.eventmanager.kafkaEvent.EventKafkaMessage;
+import com.dev.eventmanager.kafkaEvent.EventMessageSender;
+import com.dev.eventmanager.kafkaEvent.FieldChange;
+import com.dev.eventmanager.registration.RegistrationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,11 +18,14 @@ import java.util.List;
 public class EventStatusUpdaterService {
 
     private final EventRepository eventRepository;
+    private final RegistrationRepository registrationRepository;
+    private final EventMessageSender eventMessageSender;
+
 
     @Transactional
     @Scheduled(fixedRateString = "60000")
     public void updateEventStatuses() {
-        OffsetDateTime now  = OffsetDateTime.now();
+        OffsetDateTime now = OffsetDateTime.now();
         OffsetDateTime utcNow = now.withOffsetSameInstant(ZoneOffset.UTC);
         searchAndLaunchAnEvent(utcNow);
         searchingAndFinishingEvents(utcNow);
@@ -29,6 +36,7 @@ public class EventStatusUpdaterService {
         events.forEach(event -> event.setStatus(EventStatus.STARTED.name()));
         eventRepository.saveAll(events);
     }
+
     private void searchingAndFinishingEvents(OffsetDateTime now) {
         List<EventEntity> events = eventRepository.findAllRelevantEvents(now, EventStatus.STARTED.name());
         events = events.stream()

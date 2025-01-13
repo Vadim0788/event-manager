@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.List;
 
 @Component
 public class JwtTokenManager {
@@ -22,10 +23,12 @@ public class JwtTokenManager {
         this.expirationTime = expirationTime;
     }
 
-    public String generateToken(String login) {
+    public String generateToken(String login, long id, List<String> roles) {
         return Jwts
                 .builder()
                 .subject(login)
+                .claim("id", id)
+                .claim("role", roles)
                 .signWith(key)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationTime))

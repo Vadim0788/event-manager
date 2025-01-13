@@ -1,14 +1,19 @@
 package com.dev.eventmanager.kafkaEvent;
 
-import com.dev.eventmanager.event.Event;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public record EventKafkaMessage(
-        Long id,
-        Long userId,
-        Event oldEvent,
-        Event newEvent,
+        Long eventId,
         Long ownerId,
-        List<Long> subscribersList
+        Long changedById,
+        FieldChange<String> name,
+        FieldChange<Long> maxPlaces,
+        FieldChange<OffsetDateTime> date,
+        FieldChange<BigDecimal> cost,
+        FieldChange<Integer> duration,
+        FieldChange<Long> locationId,
+        List<Long> subscribersId
 ) {
 }

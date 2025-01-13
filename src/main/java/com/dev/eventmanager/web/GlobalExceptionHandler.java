@@ -20,7 +20,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             MethodArgumentNotValidException.class,
-            IllegalArgumentException.class
+            IllegalArgumentException.class,
+            IllegalStateException.class
     })
     public ResponseEntity<ServerErrorDto> handleValidationException(
             Exception e

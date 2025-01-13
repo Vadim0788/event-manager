@@ -2,6 +2,7 @@ package com.dev.eventmanager.event;
 
 import com.dev.eventmanager.kafkaEvent.EventKafkaMessage;
 import com.dev.eventmanager.kafkaEvent.EventMessageSender;
+import com.dev.eventmanager.kafkaEvent.FieldChange;
 import com.dev.eventmanager.location.LocationRepository;
 import com.dev.eventmanager.registration.RegistrationRepository;
 import com.dev.eventmanager.users.*;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 import com.dev.eventmanager.location.LocationEntity;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -118,7 +121,22 @@ public class EventService {
         LocationEntity location = locationRepository.findById(updateRequest.locationId())
                 .orElseThrow(() -> new EntityNotFoundException("Location not found"));
 
-        List<Long> subscribersList = registrationRepository.getAllByEvent(eventEntity);
+        List<Long> subscribersList = registrationRepository.getAllUserIdByEventId(eventEntity.getId());
+
+        Event oldEvent = eventEntityMapper.toDomain(eventEntity);
+
+        var eventKafkaMessage = new EventKafkaMessage(
+                eventEntity.getId(),
+                eventEntity.getOwner().getId(),
+                userEntity.getId(),
+                new FieldChange<>(oldEvent.name(), updateRequest.name()),
+                new FieldChange<>(oldEvent.maxPlaces(), updateRequest.maxPlaces()),
+                new FieldChange<>(oldEvent.date(), updateRequest.date()),
+                new FieldChange<>(oldEvent.cost(), updateRequest.cost()),
+                new FieldChange<>(oldEvent.duration(), updateRequest.duration()),
+                new FieldChange<>(oldEvent.locationId(), updateRequest.locationId()),
+                subscribersList
+        );
 
         Optional.ofNullable(updateRequest.name())
                 .ifPresent(eventEntity::setName);
@@ -136,17 +154,7 @@ public class EventService {
         eventRepository.save(eventEntity);
         EventEntity event = getEventById(eventEntity.getId());
 
-        Event oldEvent = eventEntityMapper.toDomain(eventEntity);
-        Event newEvent = eventEntityMapper.toDomain(event);
-        eventMessageSender.sendEvent(new EventKafkaMessage(
-                eventEntity.getId(),
-                userEntity.getId(),
-                oldEvent,
-                newEvent,
-                eventEntity.getOwner().getId(),
-                subscribersList
-                )
-        );
+        eventMessageSender.sendEvent(eventKafkaMessage);
 
         return eventEntityEventResponseMapper.toResponse(event);
     }
@@ -180,10 +188,9 @@ public class EventService {
     }
 
     public EventEntity getEventById(Long eventId) {
-        var event = eventRepository.findById(eventId)
+        return  eventRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException("Event entity wasn't found id=%s"
                         .formatted(eventId)));
-        return event;
     }
 
 }
