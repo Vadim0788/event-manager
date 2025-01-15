@@ -1,6 +1,11 @@
 package com.dev.eventmanager.event;
 
+import com.dev.eventmanager.kafkaEvent.EventKafkaMessage;
+import com.dev.eventmanager.kafkaEvent.EventMessageSender;
+import com.dev.eventmanager.kafkaEvent.FieldChange;
+import com.dev.eventmanager.kafkaEvent.MessageType;
 import com.dev.eventmanager.location.LocationRepository;
+import com.dev.eventmanager.registration.RegistrationRepository;
 import com.dev.eventmanager.users.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -22,8 +27,10 @@ public class EventService {
     private final UserService userService;
     private final EventDtoMapper eventDtoMapper;
     private final EventEntityEventResponseMapper eventEntityEventResponseMapper;
+    private final RegistrationRepository registrationRepository;
+    private final EventMessageSender eventMessageSender;
 
-    public EventService(EventRepository eventRepository, LocationRepository locationRepository, EventEntityMapper eventEntityMapper, UserService userService, EventDtoMapper eventDtoMapper, EventEntityEventResponseMapper eventEntityEventResponseMapper) {
+    public EventService(EventRepository eventRepository, LocationRepository locationRepository, EventEntityMapper eventEntityMapper, UserService userService, EventDtoMapper eventDtoMapper, EventEntityEventResponseMapper eventEntityEventResponseMapper, RegistrationRepository registrationRepository, EventMessageSender eventMessageSender) {
 
         this.eventRepository = eventRepository;
         this.locationRepository = locationRepository;
@@ -31,6 +38,8 @@ public class EventService {
         this.userService = userService;
         this.eventDtoMapper = eventDtoMapper;
         this.eventEntityEventResponseMapper = eventEntityEventResponseMapper;
+        this.registrationRepository = registrationRepository;
+        this.eventMessageSender = eventMessageSender;
     }
 
     public EventResponseDto createEvent(Event event) {
@@ -63,8 +72,25 @@ public class EventService {
             throw new EntityNotFoundException("Not found event by id=%s"
                     .formatted(eventId));
         }
+        UserEntity userEntity = userService.getAuthenticatedUserEntity();
+        var eventEntity = eventRepository.getEventEntitiesById(eventId);
+        List<Long> subscribersList = registrationRepository.getAllUserIdByEventId(eventEntity.getId());
+        var eventKafkaMessage = new EventKafkaMessage(
+                eventEntity.getId(),
+                eventEntity.getOwner().getId(),
+                userEntity.getId(),
+                new FieldChange<>(eventEntity.getName(), null),
+                new FieldChange<>(eventEntity.getMaxPlaces(), null),
+                new FieldChange<>(eventEntity.getDate(), null),
+                new FieldChange<>(eventEntity.getCost(), null),
+                new FieldChange<>(eventEntity.getDuration(), null),
+                new FieldChange<>(eventEntity.getLocation().getId(), null),
+                subscribersList,
+                MessageType.DELETED
+        );
 
         eventRepository.deleteById(eventId);
+        eventMessageSender.sendEvent(eventKafkaMessage);
     }
 
     public EventDto findById(long eventId) {
@@ -92,7 +118,7 @@ public class EventService {
 
         UserEntity userEntity = userService.getAuthenticatedUserEntity();
         EventEntity eventEntity = eventRepository.findById(id).orElseThrow();
-        LocationEntity locationEntity =  locationRepository.findById(eventEntity.getLocation().getId()).orElseThrow();
+        LocationEntity locationEntity = locationRepository.findById(eventEntity.getLocation().getId()).orElseThrow();
 
         if (!eventEntity.getStatus().equals(EventStatus.WAIT_START.name())) {
             throw new IllegalArgumentException("Cannot modify event in status: %s"
@@ -111,6 +137,24 @@ public class EventService {
         LocationEntity location = locationRepository.findById(updateRequest.locationId())
                 .orElseThrow(() -> new EntityNotFoundException("Location not found"));
 
+        List<Long> subscribersList = registrationRepository.getAllUserIdByEventId(eventEntity.getId());
+
+        Event oldEvent = eventEntityMapper.toDomain(eventEntity);
+
+        var eventKafkaMessage = new EventKafkaMessage(
+                eventEntity.getId(),
+                eventEntity.getOwner().getId(),
+                userEntity.getId(),
+                new FieldChange<>(oldEvent.name(), updateRequest.name()),
+                new FieldChange<>(oldEvent.maxPlaces(), updateRequest.maxPlaces()),
+                new FieldChange<>(oldEvent.date(), updateRequest.date()),
+                new FieldChange<>(oldEvent.cost(), updateRequest.cost()),
+                new FieldChange<>(oldEvent.duration(), updateRequest.duration()),
+                new FieldChange<>(oldEvent.locationId(), updateRequest.locationId()),
+                subscribersList,
+                MessageType.UPDATED
+        );
+
         Optional.ofNullable(updateRequest.name())
                 .ifPresent(eventEntity::setName);
         Optional.of(updateRequest.maxPlaces())
@@ -125,7 +169,9 @@ public class EventService {
                 .ifPresent(eventEntity::setLocation);
 
         eventRepository.save(eventEntity);
-        EventEntity event =  getEventById(eventEntity.getId());
+        EventEntity event = getEventById(eventEntity.getId());
+
+        eventMessageSender.sendEvent(eventKafkaMessage);
 
         return eventEntityEventResponseMapper.toResponse(event);
     }
@@ -159,10 +205,9 @@ public class EventService {
     }
 
     public EventEntity getEventById(Long eventId) {
-        var event = eventRepository.findById(eventId)
+        return eventRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException("Event entity wasn't found id=%s"
                         .formatted(eventId)));
-        return event;
     }
 
 }

@@ -7,6 +7,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.Collections;
 
 @Component
 public class CustomUserDetailService implements UserDetailsService {
@@ -24,10 +27,19 @@ public class CustomUserDetailService implements UserDetailsService {
         UserEntity user = userRepository.findByLogin(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        return User.withUsername(username)
-                .password(user.getPassword())
-                .authorities(user.getRole())
-                .build();
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(user.getRole());
+
+        // Вернуть CustomUserDetails с id пользователя и авторитетами
+        return new CustomUserDetails(
+                user.getId(),
+                user.getLogin(),
+                user.getPassword(),
+                Collections.singleton(authority) // Коллекция из одного элемента
+        );
+//        return User.withUsername(username)
+//                .password(user.getPassword())
+//                .authorities(user.getRole())
+//                .build();
     }
 
 }

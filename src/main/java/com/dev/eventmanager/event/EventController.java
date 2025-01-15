@@ -15,7 +15,6 @@ import static org.springframework.http.ResponseEntity.status;
 @RequestMapping("/events")
 public class EventController {
     private static final Logger log = LoggerFactory.getLogger(EventController.class);
-
     private final EventService eventService;
     private final EventDtoMapper eventDtoMapper;
 
@@ -66,7 +65,7 @@ public class EventController {
             @RequestBody @Valid EventUpdateRequestDto updateRequestDto
     ) {
         log.info("Get request for put event by id: id={}, eventToUpdate={}", id, updateRequestDto);
-        var updatedEventDto = eventService.updateEvent(id,updateRequestDto);
+        var updatedEventDto = eventService.updateEvent(id, updateRequestDto);
 
         return ResponseEntity.ok(updatedEventDto);
     }

@@ -22,4 +22,7 @@ public interface RegistrationRepository extends JpaRepository<RegistrationEntity
     List<EventEntity> findEventsByUserId(@Param("userId") Long userId);
 
     boolean existsByEventAndUser(EventEntity event, UserEntity userEntity);
+
+    @Query("SELECT r.user.id FROM RegistrationEntity r WHERE r.event.id = :eventId")
+    List<Long> getAllUserIdByEventId(@Param("eventId") Long eventId);
 }
