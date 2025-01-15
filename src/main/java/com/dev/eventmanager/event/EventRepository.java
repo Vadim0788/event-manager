@@ -16,6 +16,7 @@ import java.util.List;
 public interface EventRepository extends JpaRepository<EventEntity, Long> {
     boolean existsByName(String name);
 
+    EventEntity getEventEntitiesById(long eventId);
 
     @Modifying
     @Query("""            
@@ -37,8 +38,6 @@ public interface EventRepository extends JpaRepository<EventEntity, Long> {
             @Param("duration") Integer duration,
             @Param("location") LocationEntity location
     );
-
-
 
     @Query("""            
             SELECT e
@@ -73,16 +72,14 @@ public interface EventRepository extends JpaRepository<EventEntity, Long> {
     List<EventEntity> getEventEntitiesByOwner(UserEntity userEntity);
 
 
-
     @Query("""
-    SELECT e
-    FROM EventEntity e
-    WHERE (cast(:now as date) IS NULL OR e.date <= :now)
-    AND ( e.status = :eventStatus)
-    """)
+            SELECT e
+            FROM EventEntity e
+            WHERE (cast(:now as date) IS NULL OR e.date <= :now)
+            AND ( e.status = :eventStatus)
+            """)
     List<EventEntity> findAllRelevantEvents(@Param("now") OffsetDateTime now,
                                             @Param("eventStatus") String eventStatus);
-
 
 
 }

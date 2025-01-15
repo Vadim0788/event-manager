@@ -3,6 +3,7 @@ package com.dev.eventmanager.event;
 import com.dev.eventmanager.kafkaEvent.EventKafkaMessage;
 import com.dev.eventmanager.kafkaEvent.EventMessageSender;
 import com.dev.eventmanager.kafkaEvent.FieldChange;
+import com.dev.eventmanager.kafkaEvent.MessageType;
 import com.dev.eventmanager.location.LocationRepository;
 import com.dev.eventmanager.registration.RegistrationRepository;
 import com.dev.eventmanager.users.*;
@@ -13,8 +14,6 @@ import org.springframework.stereotype.Service;
 import com.dev.eventmanager.location.LocationEntity;
 import org.springframework.security.access.AccessDeniedException;
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,8 +72,25 @@ public class EventService {
             throw new EntityNotFoundException("Not found event by id=%s"
                     .formatted(eventId));
         }
+        UserEntity userEntity = userService.getAuthenticatedUserEntity();
+        var eventEntity = eventRepository.getEventEntitiesById(eventId);
+        List<Long> subscribersList = registrationRepository.getAllUserIdByEventId(eventEntity.getId());
+        var eventKafkaMessage = new EventKafkaMessage(
+                eventEntity.getId(),
+                eventEntity.getOwner().getId(),
+                userEntity.getId(),
+                new FieldChange<>(eventEntity.getName(), null),
+                new FieldChange<>(eventEntity.getMaxPlaces(), null),
+                new FieldChange<>(eventEntity.getDate(), null),
+                new FieldChange<>(eventEntity.getCost(), null),
+                new FieldChange<>(eventEntity.getDuration(), null),
+                new FieldChange<>(eventEntity.getLocation().getId(), null),
+                subscribersList,
+                MessageType.DELETED
+        );
 
         eventRepository.deleteById(eventId);
+        eventMessageSender.sendEvent(eventKafkaMessage);
     }
 
     public EventDto findById(long eventId) {
@@ -135,7 +151,8 @@ public class EventService {
                 new FieldChange<>(oldEvent.cost(), updateRequest.cost()),
                 new FieldChange<>(oldEvent.duration(), updateRequest.duration()),
                 new FieldChange<>(oldEvent.locationId(), updateRequest.locationId()),
-                subscribersList
+                subscribersList,
+                MessageType.UPDATED
         );
 
         Optional.ofNullable(updateRequest.name())
@@ -188,7 +205,7 @@ public class EventService {
     }
 
     public EventEntity getEventById(Long eventId) {
-        return  eventRepository.findById(eventId)
+        return eventRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException("Event entity wasn't found id=%s"
                         .formatted(eventId)));
     }
